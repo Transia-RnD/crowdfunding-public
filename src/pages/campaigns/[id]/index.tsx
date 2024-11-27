@@ -48,7 +48,7 @@ export default function Index() {
   const newFeatures = [
     'NFToken - Mint, Create Offers, Cancel Offers and Accept Offers',
     'Clawback - Clawback IOU Tokens',
-    'AMMCreate - Create Delete, Deposit, Withdraw and Vote on AMM Pools',
+    'AMM - Create Delete, Deposit, Withdraw and Vote on AMM Pools',
   ]
 
   const handleContribute = async (amount: number) => {
