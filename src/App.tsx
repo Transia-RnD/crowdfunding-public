@@ -24,7 +24,7 @@ export default function Home() {
 
   // @ts-ignore - API_HOST is a custom environment variable
   const fundingAddress = import.meta.env.VITE_XRPL_ACCOUNT || ""
-  // const auditLink = "/assets/20241112_Audit_Offer.pdf"
+  const auditLink = "/assets/20241112_Audit_Offer.pdf"
   const prLink = "https://github.com/LedgerHQ/app-xrp/pull/52"
 
   const newFeatures = [
@@ -193,12 +193,12 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 animate-fade-in">
-          {/* <Button asChild size="lg" className="w-full sm:w-auto">
+          <Button asChild size="lg" className="w-full sm:w-auto">
             <Link target="_blank" to={auditLink} className="flex items-center justify-center gap-2">
               View Audit Proposal
               <ArrowRight className="w-4 h-4" />
             </Link>
-          </Button> */}
+          </Button>
           <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
             <Link target="_blank" to={prLink} className="flex items-center justify-center gap-2">
               View GitHub PR
