@@ -6,6 +6,8 @@ export const fetchBalance = async (client: Client, address: string): Promise<num
     account: address,
   });
   const balance = dropsToXrp(accountInfo.result.account_data.Balance || "0");
+  console.log(balance);
+  
   // const ownerCount = accountInfo.result.account_data.OwnerCount || 0;
   return balance - 10;
 };

@@ -6,15 +6,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ArrowRight, Wallet, Zap, ChevronRight, Twitter, Copy } from 'lucide-react'
-import { ContributeModal } from "./components/Modal"
-import { Link } from "react-router-dom"
-import useXrpl from "./context/Xrpl/useXrpl"
-import { fetchBalance, fetchUSDPrice } from "./lib/xrpl"
+import { ContributeModal } from "@/components/Modal"
+import Link from "next/link"
+import useXrpl from "@/context/Xrpl/useXrpl"
+import { fetchBalance, fetchUSDPrice } from "@/lib/xrpl"
 import axios from "axios"
 import { xrpToDrops } from "xrpl"
+import MainLayout from "@/components/templates/Layout"
 
+Index.getLayout = function getLayout(page: React.ReactElement) {
+  return <MainLayout>{page}</MainLayout>
+}
 
-export default function Home() {
+export default function Index() {
   const { xrpl } = useXrpl()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -22,8 +26,7 @@ export default function Home() {
   const [percentageRaised, setPercentRaised] = useState<number>(0)
   const [goalAmount, setGoalAmount] = useState<number>(0)
 
-  // @ts-ignore - API_HOST is a custom environment variable
-  const fundingAddress = import.meta.env.VITE_XRPL_ACCOUNT || ""
+  const fundingAddress = process.env.XRPL_ACCOUNT || ""
   const auditLink = "/assets/20241112_Audit_Offer.pdf"
   const prLink = "https://github.com/LedgerHQ/app-xrp/pull/52"
 
@@ -36,8 +39,7 @@ export default function Home() {
   const handleContribute = async (amount: number) => {
     try {
       setIsSubmitting(true)
-      // @ts-ignore - API_HOST is a custom environment variable
-      const response = await axios.post(`${import.meta.env.VITE_API_HOST || "http://localhost:3000"}/payload`, {
+      const response = await axios.post(`${process.env.API_HOST || "http://localhost:3000"}/payload`, {
         TransactionType: 'Payment',
         Amount: xrpToDrops(amount),
         Destination: fundingAddress
@@ -72,14 +74,7 @@ export default function Home() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-gray-100 text-gray-900 relative">
-      <div 
-        className="absolute inset-0 z-0 opacity-5"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          backgroundSize: '60px 60px',
-        }}
-      ></div>
+    <div className="min-h-screen text-gray-900 relative">
       <div className="container mx-auto px-4 py-16 relative z-10">
         <div className="text-center mb-12 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-primary">
@@ -105,9 +100,6 @@ export default function Home() {
                 </p>
                 <p className="text-muted-foreground">{percentageRaised.toFixed(1)}% Complete</p>
               </div>
-              <p className="text-center text-muted-foreground">
-                Your contribution pays for the audit and the developer.
-              </p>
             </CardContent>
           </Card>
 
@@ -160,7 +152,7 @@ export default function Home() {
                   </div>
                 </div>
                 <Button asChild variant="ghost" size="sm">
-                  <Link target="_blank" to="https://twitter.com/@angell_denis" rel="noopener noreferrer">
+                  <Link target="_blank" href="https://twitter.com/@angell_denis" rel="noopener noreferrer">
                     <Twitter className="w-4 h-4 mr-2" />
                     Follow
                   </Link>
@@ -194,13 +186,13 @@ export default function Home() {
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 animate-fade-in">
           <Button asChild size="lg" className="w-full sm:w-auto">
-            <Link target="_blank" to={auditLink} className="flex items-center justify-center gap-2">
+            <Link target="_blank" href={auditLink} className="flex items-center justify-center gap-2">
               View Audit Proposal
               <ArrowRight className="w-4 h-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-            <Link target="_blank" to={prLink} className="flex items-center justify-center gap-2">
+            <Link target="_blank" href={prLink} className="flex items-center justify-center gap-2">
               View GitHub PR
               <ArrowRight className="w-4 h-4" />
             </Link>
@@ -214,7 +206,7 @@ export default function Home() {
         onSubmit={handleContribute}
         isSubmitting={isSubmitting}
       />
-    </main>
+    </div>
   )
 }
 
