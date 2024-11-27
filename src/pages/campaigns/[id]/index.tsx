@@ -245,13 +245,19 @@ export default function Index() {
           </Card>
         </div>
 
+        {/* Disclaimer Section */}
+        <Card className="bg-yellow-50 border border-yellow-200 shadow-md mb-12">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold text-yellow-800 mb-2">
+              Disclaimer
+            </h2>
+            <p className="text-yellow-700">
+              The goal amount of <span className="font-bold">{goalUSD.toLocaleString()} USD</span> is precisely the cost required for the audit. Due to the confidential nature of the audit, I am unable to share the detailed proposal publicly. Any funds raised beyond the set goal will be allocated towards personal use and funding subsequent audits, which will encompass the latest features added to the Ledger Device.
+            </p>
+          </CardContent>
+        </Card>
+
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 animate-fade-in">
-          {/* <Button asChild size="lg" className="w-full sm:w-auto">
-            <Link target="_blank" href={auditLink} className="flex items-center justify-center gap-2">
-              View Audit Proposal
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </Button> */}
           <Button
             asChild
             variant="outline"
