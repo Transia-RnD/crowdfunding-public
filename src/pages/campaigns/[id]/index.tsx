@@ -79,7 +79,6 @@ export default function Index() {
   useEffect(() => {
     const updateBalance = async () => {
       xrpl.on('transaction', async (message: any) => {
-        console.log(message);
         if (!message || !message.tx_json) return
         if (
           message.tx_json.TransactionType === 'Payment' &&
@@ -89,6 +88,7 @@ export default function Index() {
           const raised = balance / Number(goalAmount)
           setPercentRaised(raised * 100)
           setRaisedAmount(balance)
+          return
         }
       })
       await xrpl.request({
