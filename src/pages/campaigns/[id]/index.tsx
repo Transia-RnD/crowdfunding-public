@@ -252,7 +252,14 @@ export default function Index() {
               Disclaimer
             </h2>
             <p className="text-yellow-700">
-              The goal amount of <span className="font-bold">{goalUSD.toLocaleString()} USD</span> is precisely the cost required for the audit. Due to the confidential nature of the audit, I am unable to share the detailed proposal publicly. Any funds raised beyond the set goal will be allocated towards personal use and funding subsequent audits, which will encompass the latest features added to the Ledger Device.
+              The goal amount of{' '}
+              <span className="font-bold">{goalUSD.toLocaleString()} USD</span>{' '}
+              is precisely the cost required for the audit. Due to the
+              confidential nature of the audit, I am unable to share the
+              detailed proposal publicly. Any funds raised beyond the set goal
+              will be allocated towards continued development and funding subsequent
+              audits, which will encompass the latest features added to the
+              Ledger Device.
             </p>
           </CardContent>
         </Card>
