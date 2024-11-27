@@ -15,7 +15,7 @@ export const PATH_PAGE = {
   page500: '/500',
 }
 
-const ROOTS_DASHBOARD = '/'
+const ROOTS_DASHBOARD = ''
 
 export const PATH_DASHBOARD = {
   root: ROOTS_DASHBOARD,
