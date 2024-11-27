@@ -192,12 +192,12 @@ export default function Index() {
         </div>
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 animate-fade-in">
-          <Button asChild size="lg" className="w-full sm:w-auto">
+          {/* <Button asChild size="lg" className="w-full sm:w-auto">
             <Link target="_blank" href={auditLink} className="flex items-center justify-center gap-2">
               View Audit Proposal
               <ArrowRight className="w-4 h-4" />
             </Link>
-          </Button>
+          </Button> */}
           <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
             <Link target="_blank" href={prLink} className="flex items-center justify-center gap-2">
               View GitHub PR
