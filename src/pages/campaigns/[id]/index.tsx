@@ -1,18 +1,32 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import { Progress } from "@/components/ui/progress"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ArrowRight, Wallet, Zap, ChevronRight, Twitter, Copy } from 'lucide-react'
-import { ContributeModal } from "@/components/Modal"
-import Link from "next/link"
-import useXrpl from "@/context/Xrpl/useXrpl"
-import { fetchBalance, fetchUSDPrice } from "@/lib/xrpl"
-import axios from "axios"
-import { xrpToDrops } from "xrpl"
-import MainLayout from "@/components/templates/Layout"
+import { useEffect, useState } from 'react'
+import { Progress } from '@/components/ui/progress'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  ArrowRight,
+  Wallet,
+  Zap,
+  ChevronRight,
+  Twitter,
+  Copy,
+} from 'lucide-react'
+import { ContributeModal } from '@/components/Modal'
+import Link from 'next/link'
+import useXrpl from '@/context/Xrpl/useXrpl'
+import { fetchBalance, fetchUSDPrice } from '@/lib/xrpl'
+import axios from 'axios'
+import { xrpToDrops } from 'xrpl'
+import MainLayout from '@/components/templates/Layout'
 
 Index.getLayout = function getLayout(page: React.ReactElement) {
   return <MainLayout>{page}</MainLayout>
@@ -26,42 +40,62 @@ export default function Index() {
   const [percentageRaised, setPercentRaised] = useState<number>(0)
   const [goalAmount, setGoalAmount] = useState<number>(0)
 
-  const fundingAddress = process.env.XRPL_ACCOUNT || ""
-  const auditLink = "/assets/20241112_Audit_Offer.pdf"
-  const prLink = "https://github.com/LedgerHQ/app-xrp/pull/52"
+  const fundingAddress = process.env.XRPL_ACCOUNT || ''
+  const auditLink = '/assets/20241112_Audit_Offer.pdf'
+  const prLink = 'https://github.com/LedgerHQ/app-xrp/pull/52'
 
   const newFeatures = [
-    "NFToken - Mint, Create Offers, Cancel Offers and Accept Offers",
-    "Clawback - Clawback IOU Tokens",
-    "AMMCreate - Create Delete, Deposit, Withdraw and Vote on AMM Pools",
+    'NFToken - Mint, Create Offers, Cancel Offers and Accept Offers',
+    'Clawback - Clawback IOU Tokens',
+    'AMMCreate - Create Delete, Deposit, Withdraw and Vote on AMM Pools',
   ]
 
   const handleContribute = async (amount: number) => {
     try {
       setIsSubmitting(true)
-      const response = await axios.post(`${process.env.API_HOST || "http://localhost:3000"}/payload`, {
-        TransactionType: 'Payment',
-        Amount: xrpToDrops(amount),
-        Destination: fundingAddress
-      })
+      const response = await axios.post(
+        `${process.env.API_HOST || 'http://localhost:3000'}/payload`,
+        {
+          TransactionType: 'Payment',
+          Amount: xrpToDrops(amount),
+          Destination: fundingAddress,
+        },
+      )
       window.open(response.data.next.always, '_blank')
       setIsSubmitting(false)
       setIsModalOpen(false)
     } catch (error) {
       console.error(error)
       setIsSubmitting(false)
-      alert("An error occurred. Please try again.")
+      alert('An error occurred. Please try again.')
     }
   }
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(fundingAddress)
-    alert("Funding address copied to clipboard!")
+    alert('Funding address copied to clipboard!')
   }
 
   useEffect(() => {
     const updateBalance = async () => {
-      const xrpPrice = await fetchUSDPrice(xrpl);
+      xrpl.on('transaction', async (message: any) => {
+        console.log(message);
+        if (!message || !message.tx_json) return
+        if (
+          message.tx_json.TransactionType === 'Payment' &&
+          message.tx_json.Destination === fundingAddress
+        ) {
+          const balance = await fetchBalance(xrpl, fundingAddress)
+          const raised = balance / Number(goalAmount)
+          setPercentRaised(raised * 100)
+          setRaisedAmount(balance)
+        }
+      })
+      await xrpl.request({
+        command: 'subscribe',
+        accounts: [fundingAddress],
+      })
+      const xrpPrice = await fetchUSDPrice(xrpl)
       const goalUSD = 4850
       const goalXrp = Number(goalUSD / xrpPrice).toFixed(0)
       const balance = await fetchBalance(xrpl, fundingAddress)
@@ -71,11 +105,17 @@ export default function Index() {
       setGoalAmount(Number(goalXrp))
     }
     updateBalance()
+    return () => {
+      xrpl.request({
+        command: 'unsubscribe',
+        accounts: [fundingAddress],
+      })
+    }
   }, [])
 
   return (
     <div className="min-h-screen text-gray-900 relative">
-      <div 
+      <div
         className="absolute inset-0 z-0 opacity-5"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
@@ -96,16 +136,25 @@ export default function Index() {
           <Card className="md:col-span-2 shadow-md">
             <CardContent className="p-8">
               <div className="flex flex-col items-center mb-6">
-                <h2 className="text-2xl font-semibold mb-4">Funding Progress</h2>
+                <h2 className="text-2xl font-semibold mb-4">
+                  Funding Progress
+                </h2>
                 <div className="w-full max-w-md mb-4">
-                  <Progress value={percentageRaised > 100 ? 100 : percentageRaised} className="h-2" />
+                  <Progress
+                    value={percentageRaised > 100 ? 100 : percentageRaised}
+                    className="h-2"
+                  />
                 </div>
                 <p className="text-2xl font-semibold mb-2">
-                  <span className="text-primary">{raisedAmount.toLocaleString()} XRP</span>
+                  <span className="text-primary">
+                    {raisedAmount.toLocaleString()} XRP
+                  </span>
                   <span className="text-muted-foreground"> / </span>
                   <span>{goalAmount.toLocaleString()} XRP</span>
                 </p>
-                <p className="text-muted-foreground">{percentageRaised.toFixed(1)}% Complete</p>
+                <p className="text-muted-foreground">
+                  {percentageRaised.toFixed(1)}% Complete
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -117,7 +166,8 @@ export default function Index() {
                 Contribute Now
               </CardTitle>
               <CardDescription>
-                Support the development of advanced features for the Ledger Device.
+                Support the development of advanced features for the Ledger
+                Device.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -125,16 +175,14 @@ export default function Index() {
                 Make a Contribution
               </Button>
               <div className="space-y-2">
-                <p className="text-sm font-medium">Or send XRP directly to this address:</p>
+                <p className="text-sm font-medium">
+                  Or send XRP directly to this address:
+                </p>
                 <div className="flex items-center space-x-2">
-                  <Input 
-                    value={fundingAddress} 
-                    readOnly 
-                    className="text-sm"
-                  />
-                  <Button 
-                    size="icon" 
-                    variant="outline" 
+                  <Input value={fundingAddress} readOnly className="text-sm" />
+                  <Button
+                    size="icon"
+                    variant="outline"
                     onClick={copyToClipboard}
                     title="Copy address"
                   >
@@ -155,11 +203,17 @@ export default function Index() {
                   />
                   <div>
                     <h3 className="text-sm font-semibold">Denis Angell</h3>
-                    <p className="text-xs text-muted-foreground">Lead Developer</p>
+                    <p className="text-xs text-muted-foreground">
+                      Lead Developer
+                    </p>
                   </div>
                 </div>
                 <Button asChild variant="ghost" size="sm">
-                  <Link target="_blank" href="https://twitter.com/@angell_denis" rel="noopener noreferrer">
+                  <Link
+                    target="_blank"
+                    href="https://twitter.com/@angell_denis"
+                    rel="noopener noreferrer"
+                  >
                     <Twitter className="w-4 h-4 mr-2" />
                     Follow
                   </Link>
@@ -198,8 +252,17 @@ export default function Index() {
               <ArrowRight className="w-4 h-4" />
             </Link>
           </Button> */}
-          <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-            <Link target="_blank" href={prLink} className="flex items-center justify-center gap-2">
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="w-full sm:w-auto"
+          >
+            <Link
+              target="_blank"
+              href={prLink}
+              className="flex items-center justify-center gap-2"
+            >
               View GitHub PR
               <ArrowRight className="w-4 h-4" />
             </Link>
@@ -216,4 +279,3 @@ export default function Index() {
     </div>
   )
 }
-
