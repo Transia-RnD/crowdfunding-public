@@ -1,17 +1,20 @@
 // xrpl
 
+import { fetchUSDPrice } from '@/lib/xrpl'
 import React, { ReactNode, useState, useEffect, createContext } from 'react'
 import { Client } from 'xrpl'
 
 export type XrplContextProps = {
   xrpl: Client | undefined
   error: string | undefined
+  xrpPrice: number | undefined
   method: 'xrpl'
 }
 
 const initialState: XrplContextProps = {
   xrpl: undefined,
   error: undefined,
+  xrpPrice: undefined,
   method: 'xrpl',
 }
 
@@ -24,6 +27,7 @@ type XrplProviderProps = {
 export function XrplProvider({ children }: XrplProviderProps) {
   const httpProvider = "wss://xrplcluster.com"
   const [client, setClient] = useState<Client | undefined>(undefined)
+  const [xrpPrice, setXrpPrice] = useState<number>(undefined)
   const [error, setError] = useState<string | undefined>(undefined)
 
   useEffect(() => {
@@ -31,6 +35,8 @@ export function XrplProvider({ children }: XrplProviderProps) {
       try {
         const xrpl = new Client(httpProvider)
         await xrpl.connect()
+        const price = await fetchUSDPrice(xrpl)
+        setXrpPrice(price)
         setClient(xrpl)
       } catch(error: any) {
         console.log(error.message);
@@ -50,6 +56,7 @@ export function XrplProvider({ children }: XrplProviderProps) {
         method: 'xrpl',
         xrpl: client,
         error: error,
+        xrpPrice: xrpPrice,
       }}
     >
       {children}

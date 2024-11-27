@@ -23,7 +23,7 @@ import {
 import { ContributeModal } from '@/components/Modal'
 import Link from 'next/link'
 import useXrpl from '@/context/Xrpl/useXrpl'
-import { fetchBalance, fetchUSDPrice } from '@/lib/xrpl'
+import { fetchBalance } from '@/lib/xrpl'
 import axios from 'axios'
 import { xrpToDrops } from 'xrpl'
 import MainLayout from '@/components/templates/Layout'
@@ -33,7 +33,7 @@ Index.getLayout = function getLayout(page: React.ReactElement) {
 }
 
 export default function Index() {
-  const { xrpl } = useXrpl()
+  const { xrpl, xrpPrice } = useXrpl()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [raisedAmount, setRaisedAmount] = useState<number>(0)
@@ -43,6 +43,7 @@ export default function Index() {
   const fundingAddress = process.env.XRPL_ACCOUNT || ''
   const auditLink = '/assets/20241112_Audit_Offer.pdf'
   const prLink = 'https://github.com/LedgerHQ/app-xrp/pull/52'
+  const goalUSD = 4850
 
   const newFeatures = [
     'NFToken - Mint, Create Offers, Cancel Offers and Accept Offers',
@@ -76,18 +77,24 @@ export default function Index() {
     alert('Funding address copied to clipboard!')
   }
 
+  const updateBalance = async () => {
+    const goalXrp = Number(goalUSD / xrpPrice).toFixed(0)
+    const balance = await fetchBalance(xrpl, fundingAddress)
+    const raised = balance / Number(goalXrp)
+    setPercentRaised(raised * 100)
+    setRaisedAmount(balance)
+    setGoalAmount(Number(goalXrp))
+  }
+
   useEffect(() => {
-    const updateBalance = async () => {
+    const listenBalance = async () => {
       xrpl.on('transaction', async (message: any) => {
         if (!message || !message.tx_json) return
         if (
           message.tx_json.TransactionType === 'Payment' &&
           message.tx_json.Destination === fundingAddress
         ) {
-          const balance = await fetchBalance(xrpl, fundingAddress)
-          const raised = balance / Number(goalAmount)
-          setPercentRaised(raised * 100)
-          setRaisedAmount(balance)
+          await updateBalance()
           return
         }
       })
@@ -95,16 +102,9 @@ export default function Index() {
         command: 'subscribe',
         accounts: [fundingAddress],
       })
-      const xrpPrice = await fetchUSDPrice(xrpl)
-      const goalUSD = 4850
-      const goalXrp = Number(goalUSD / xrpPrice).toFixed(0)
-      const balance = await fetchBalance(xrpl, fundingAddress)
-      const raised = balance / Number(goalXrp)
-      setPercentRaised(raised * 100)
-      setRaisedAmount(balance)
-      setGoalAmount(Number(goalXrp))
+      await updateBalance()
     }
-    updateBalance()
+    listenBalance()
     return () => {
       xrpl.request({
         command: 'unsubscribe',
