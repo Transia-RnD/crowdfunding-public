@@ -133,27 +133,33 @@ export default function Index() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 mb-12 relative z-10">
-          <Card className="md:col-span-2 shadow-md">
+        <Card className="md:col-span-2 shadow-md">
             <CardContent className="p-8">
               <div className="flex flex-col items-center mb-6">
                 <h2 className="text-2xl font-semibold mb-4">
                   Funding Progress
                 </h2>
-                <div className="w-full max-w-md mb-4">
-                  <Progress
-                    value={percentageRaised > 100 ? 100 : percentageRaised}
-                    className="h-2"
-                  />
+                <div className="relative w-full max-w-md mb-4">
+                  {/* Primary Progress Bar */}
+                  <div className="w-full bg-gray-200 rounded h-2 relative">
+                    <div
+                      className={`h-full rounded ${percentageRaised > 100 ? 'bg-green-500' : 'bg-primary'}`}
+                      style={{ width: `${percentageRaised > 100 ? 100 : percentageRaised}%` }}
+                    ></div>
+                  </div>
                 </div>
                 <p className="text-2xl font-semibold mb-2">
-                  <span className="text-primary">
+                  <span className={`${percentageRaised > 100 ? 'text-green-500' : 'text-primary'}`}>
                     {raisedAmount.toLocaleString()} XRP
                   </span>
                   <span className="text-muted-foreground"> / </span>
                   <span>{goalAmount.toLocaleString()} XRP</span>
                 </p>
                 <p className="text-muted-foreground">
-                  {percentageRaised.toFixed(1)}% Complete
+                  {(percentageRaised > 100 ? 100 : percentageRaised).toFixed(1)}% Complete
+                </p>
+                <p className="text-sm text-green-800 mt-1">
+                  Extra contributions will support continued development and future audits.
                 </p>
               </div>
             </CardContent>
