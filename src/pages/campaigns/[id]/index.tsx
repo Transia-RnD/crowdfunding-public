@@ -19,14 +19,25 @@ import {
   ChevronRight,
   Twitter,
   Copy,
+  SignalHigh,
 } from 'lucide-react'
 import { ContributeModal } from '@/components/Modal'
 import Link from 'next/link'
 import useXrpl from '@/context/Xrpl/useXrpl'
-import { fetchBalance } from '@/lib/xrpl'
+import { fetchBalance, fetchContributors } from '@/lib/xrpl'
 import axios from 'axios'
 import { xrpToDrops } from 'xrpl'
 import MainLayout from '@/components/templates/Layout'
+import { abbrv } from '@/common/helpers/string'
+import { fDateFromNow } from '@/common/helpers/date'
+
+interface Contributor {
+  amount: number
+  account: string
+  avatar: string
+  name: string
+  timestamp: number
+}
 
 Index.getLayout = function getLayout(page: React.ReactElement) {
   return <MainLayout>{page}</MainLayout>
@@ -50,6 +61,9 @@ export default function Index() {
     'Clawback - Clawback IOU Tokens',
     'AMM - Create Delete, Deposit, Withdraw and Vote on AMM Pools',
   ]
+
+  // Mock data for top contributors
+  const [topContributors, setTopContributors] = useState<Contributor[]>([])
 
   const handleContribute = async (amount: number) => {
     try {
@@ -84,6 +98,10 @@ export default function Index() {
     setPercentRaised(raised * 100)
     setRaisedAmount(balance)
     setGoalAmount(Number(goalXrp))
+    const c = await fetchContributors(xrpl, fundingAddress)
+    console.log(c)
+
+    setTopContributors(c)
   }
 
   useEffect(() => {
@@ -133,7 +151,7 @@ export default function Index() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 mb-12 relative z-10">
-        <Card className="md:col-span-2 shadow-md">
+          <Card className="md:col-span-2 shadow-md">
             <CardContent className="p-8">
               <div className="flex flex-col items-center mb-6">
                 <h2 className="text-2xl font-semibold mb-4">
@@ -143,28 +161,41 @@ export default function Index() {
                   {/* Primary Progress Bar */}
                   <div className="w-full bg-gray-200 rounded h-2 relative">
                     <div
-                      className={`h-full rounded ${percentageRaised > 100 ? 'bg-green-500' : 'bg-primary'}`}
-                      style={{ width: `${percentageRaised > 100 ? 100 : percentageRaised}%` }}
+                      className={`h-full rounded ${
+                        percentageRaised > 100 ? 'bg-green-500' : 'bg-primary'
+                      }`}
+                      style={{
+                        width: `${
+                          percentageRaised > 100 ? 100 : percentageRaised
+                        }%`,
+                      }}
                     ></div>
                   </div>
                 </div>
                 <p className="text-2xl font-semibold mb-2">
-                  <span className={`${percentageRaised > 100 ? 'text-green-500' : 'text-primary'}`}>
+                  <span
+                    className={`${
+                      percentageRaised > 100 ? 'text-green-500' : 'text-primary'
+                    }`}
+                  >
                     {raisedAmount.toLocaleString()} XRP
                   </span>
                   <span className="text-muted-foreground"> / </span>
                   <span>{goalAmount.toLocaleString()} XRP</span>
                 </p>
                 <p className="text-muted-foreground">
-                  {(percentageRaised > 100 ? 100 : percentageRaised).toFixed(1)}% Complete
+                  {(percentageRaised > 100 ? 100 : percentageRaised).toFixed(1)}
+                  % Complete
                 </p>
                 <p className="text-sm text-green-800 mt-1">
-                  Extra contributions will support continued development and future audits.
+                  Extra contributions will support continued development and
+                  future audits.
                 </p>
               </div>
             </CardContent>
           </Card>
-
+        </div>
+        <div className="grid md:grid-cols-3 gap-8 mb-12 relative z-10">
           <Card className="hover-lift">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl mb-2">
@@ -249,6 +280,44 @@ export default function Index() {
               </ul>
             </CardContent>
           </Card>
+
+          <Card className="hover-lift">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl mb-2">
+                <SignalHigh className="w-5 h-5 text-primary" />
+                Recent Contributors
+              </CardTitle>
+              <CardDescription>
+                Thank you to all our supporters!
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-4">
+                {topContributors.map((contributor, index) => (
+                  <li key={index} className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={contributor.avatar}
+                        alt={`Contributor ${index + 1}`}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="text-lg font-medium">
+                          {contributor.amount.toLocaleString()} XRP
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {abbrv(contributor.account)}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="hidden md:block text-sm align-right text-muted-foreground">
+                        {fDateFromNow(new Date(contributor.timestamp), true)}
+                      </p>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Disclaimer Section */}
@@ -263,9 +332,9 @@ export default function Index() {
               is precisely the cost required for the audit. Due to the
               confidential nature of the audit, I am unable to share the
               detailed proposal publicly. Any funds raised beyond the set goal
-              will be allocated towards continued development and funding subsequent
-              audits, which will encompass the latest features added to the
-              Ledger Device.
+              will be allocated towards continued development and funding
+              subsequent audits, which will encompass the latest features added
+              to the Ledger Device.
             </p>
           </CardContent>
         </Card>
