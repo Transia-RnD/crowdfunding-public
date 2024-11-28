@@ -64,7 +64,7 @@ export default function Index() {
 
   // Mock data for top contributors
   const [topContributors, setTopContributors] = useState<Contributor[]>([])
-
+  const [link, setLink] = useState<string>('')
   const handleContribute = async (amount: number) => {
     try {
       setIsSubmitting(true)
@@ -76,9 +76,8 @@ export default function Index() {
           Destination: fundingAddress,
         },
       )
-      setTimeout(() => {
-        window.open(response.data.next.always, '_blank')
-      }, 500)
+      window.open(response.data.next.always)
+      setLink(response.data.next.always)
       setIsSubmitting(false)
       setIsModalOpen(false)
     } catch (error) {
