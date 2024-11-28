@@ -1,10 +1,16 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface ContributeModalProps {
   isOpen: boolean
@@ -14,8 +20,14 @@ interface ContributeModalProps {
   link?: string
 }
 
-export function ContributeModal({ isOpen, onClose, onSubmit, isSubmitting, link }: ContributeModalProps) {
-  const [amount, setAmount] = useState("")
+export function ContributeModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  isSubmitting,
+  link,
+}: ContributeModalProps) {
+  const [amount, setAmount] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,11 +44,20 @@ export function ContributeModal({ isOpen, onClose, onSubmit, isSubmitting, link 
           <DialogHeader>
             <DialogTitle>Make a Contribution</DialogTitle>
             <DialogDescription>
-              Sign the transaction with Xaman to contribute to the XRPL Ledger Device Audit.
+              Sign the transaction with Xaman to contribute to the XRPL Ledger
+              Device Audit.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() =>window.open(link)} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                window.open(link, '_blank')
+                onClose()
+              }}
+              disabled={isSubmitting}
+            >
               Sign With Xaman
             </Button>
           </div>
@@ -51,7 +72,8 @@ export function ContributeModal({ isOpen, onClose, onSubmit, isSubmitting, link 
         <DialogHeader>
           <DialogTitle>Make a Contribution</DialogTitle>
           <DialogDescription>
-            Enter the amount of XRP you'd like to contribute to the XRPL Ledger Device Audit.
+            Enter the amount of XRP you'd like to contribute to the XRPL Ledger
+            Device Audit.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -69,11 +91,16 @@ export function ContributeModal({ isOpen, onClose, onSubmit, isSubmitting, link 
             />
           </div>
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Processing..." : "Contribute"}
+              {isSubmitting ? 'Processing...' : 'Contribute'}
             </Button>
           </div>
         </form>
