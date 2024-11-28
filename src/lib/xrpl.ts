@@ -112,18 +112,23 @@ export const fetchContributors = async (
 }
 
 export const fetchUSDPrice = async (client: Client): Promise<number> => {
-  const accountInfo = await client.request({
-    command: 'get_aggregate_price',
-    ledger_index: 'current',
-    base_asset: 'XRP',
-    quote_asset: 'USD',
-    trim: 20,
-    oracles: [
-      {
-        account: 'roosteri9aGNFRXZrJNYQKVBfxHiE5abg',
-        oracle_document_id: 4,
-      },
-    ],
-  })
-  return Number(accountInfo.result.median || 0)
+  try {
+    const accountInfo = await client.request({
+      command: 'get_aggregate_price',
+      ledger_index: 'current',
+      base_asset: 'XRP',
+      quote_asset: 'USDT',
+      trim: 20,
+      oracles: [
+        {
+          account: 'roosteri9aGNFRXZrJNYQKVBfxHiE5abg',
+          oracle_document_id: 0,
+        },
+      ],
+    })
+    return Number(accountInfo.result.median || 1.48)
+  } catch (error: any) {
+    console.error('Failed to get USD price.', error)
+    return 1.48
+  }
 }

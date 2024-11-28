@@ -37,7 +37,7 @@ Index.getLayout = function getLayout(page: React.ReactElement) {
 }
 
 export default function Index() {
-  const { xrpl } = useXrpl()
+  const { xrpl, xrpPrice } = useXrpl()
 
   const [raisedAmount, setRaisedAmount] = useState<number>(0)
   const [percentageRaised, setPercentRaised] = useState<number>(0)
@@ -46,7 +46,6 @@ export default function Index() {
 
   useEffect(() => {
     const updateBalance = async () => {
-      const xrpPrice = await fetchUSDPrice(xrpl);
       const goalUSD = 4850
       const goalXrp = Number(goalUSD / xrpPrice).toFixed(0)
       const balance = await fetchBalance(xrpl, fundingAddress)
@@ -78,7 +77,7 @@ export default function Index() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <Progress value={percentageRaised} />
+                  <Progress className={percentageRaised > 100 ? '[&>*]:bg-green-500' : ''} value={percentageRaised > 100 ? 100 : percentageRaised} />
                   <div className="flex justify-between text-sm">
                     <span>{raisedAmount.toLocaleString()} XRP raised</span>
                     <span>{goalAmount.toLocaleString()} XRP goal</span>
