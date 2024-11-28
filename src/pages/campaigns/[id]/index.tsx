@@ -76,7 +76,11 @@ export default function Index() {
           Destination: fundingAddress,
         },
       )
-      window.open(response.data.next.always, '_blank')
+      const a = document.createElement('a')
+      a.href = response.data.next.always
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+      a.click()
       setIsSubmitting(false)
       setIsModalOpen(false)
     } catch (error) {

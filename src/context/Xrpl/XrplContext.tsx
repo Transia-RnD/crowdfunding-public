@@ -35,8 +35,8 @@ export function XrplProvider({ children }: XrplProviderProps) {
       try {
         const xrpl = new Client(httpProvider)
         await xrpl.connect()
-        const price = await fetchUSDPrice(xrpl)
-        setXrpPrice(price)
+        // const price = await fetchUSDPrice(xrpl)
+        setXrpPrice(1.47)
         setClient(xrpl)
       } catch(error: any) {
         console.log(error.message);
