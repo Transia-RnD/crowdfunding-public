@@ -65,6 +65,11 @@ export default function Index() {
   // Mock data for top contributors
   const [topContributors, setTopContributors] = useState<Contributor[]>([])
   const [link, setLink] = useState<string>('')
+  useEffect(() => {
+    if (link) {
+      window.open(link)
+    }
+  }, [link])
   const handleContribute = async (amount: number) => {
     try {
       setIsSubmitting(true)
@@ -76,7 +81,6 @@ export default function Index() {
           Destination: fundingAddress,
         },
       )
-      window.open(response.data.next.always)
       setLink(response.data.next.always)
       setIsSubmitting(false)
       setIsModalOpen(false)
