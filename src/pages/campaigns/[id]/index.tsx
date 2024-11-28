@@ -76,11 +76,9 @@ export default function Index() {
           Destination: fundingAddress,
         },
       )
-      const a = document.createElement('a')
-      a.href = response.data.next.always
-      a.target = '_blank'
-      a.rel = 'noopener noreferrer'
-      a.click()
+      setTimeout(() => {
+        window.open(response.data.next.always, '_blank')
+      }, 500)
       setIsSubmitting(false)
       setIsModalOpen(false)
     } catch (error) {
@@ -103,8 +101,6 @@ export default function Index() {
     setRaisedAmount(balance)
     setGoalAmount(Number(goalXrp))
     const c = await fetchContributors(xrpl, fundingAddress)
-    console.log(c)
-
     setTopContributors(c)
   }
 
