@@ -11,9 +11,10 @@ interface ContributeModalProps {
   onClose: () => void
   onSubmit: (amount: number) => void
   isSubmitting: boolean
+  link?: string
 }
 
-export function ContributeModal({ isOpen, onClose, onSubmit, isSubmitting }: ContributeModalProps) {
+export function ContributeModal({ isOpen, onClose, onSubmit, isSubmitting, link }: ContributeModalProps) {
   const [amount, setAmount] = useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,6 +23,26 @@ export function ContributeModal({ isOpen, onClose, onSubmit, isSubmitting }: Con
     if (!isNaN(numAmount) && numAmount > 0) {
       onSubmit(numAmount)
     }
+  }
+
+  if (link) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Make a Contribution</DialogTitle>
+            <DialogDescription>
+              Sign the transaction with Xaman to contribute to the XRPL Ledger Device Audit.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={() =>window.open(link)} disabled={isSubmitting}>
+              Sign With Xaman
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
   return (
