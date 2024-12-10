@@ -117,7 +117,7 @@ export const fetchUSDPrice = async (client: Client): Promise<number> => {
       command: 'get_aggregate_price',
       ledger_index: 'current',
       base_asset: 'XRP',
-      quote_asset: 'USDT',
+      quote_asset: 'USD',
       trim: 20,
       oracles: [
         {
