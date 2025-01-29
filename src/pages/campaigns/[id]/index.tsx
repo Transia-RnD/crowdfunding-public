@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Progress } from '@/components/ui/progress'
 import {
   Card,
   CardContent,
@@ -30,6 +29,8 @@ import { xrpToDrops } from 'xrpl'
 import MainLayout from '@/components/templates/Layout'
 import { abbrv } from '@/common/helpers/string'
 import { fDateFromNow } from '@/common/helpers/date'
+import { AppCampaign, campaigns } from '@/common/constants/db'
+import { useRouter } from 'next/router'
 
 interface Contributor {
   amount: number
@@ -44,23 +45,11 @@ Index.getLayout = function getLayout(page: React.ReactElement) {
 }
 
 export default function Index() {
+  const { id } = useRouter().query
   const { xrpl, xrpPrice } = useXrpl()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [raisedAmount, setRaisedAmount] = useState<number>(0)
-  const [percentageRaised, setPercentRaised] = useState<number>(0)
-  const [goalAmount, setGoalAmount] = useState<number>(0)
-
-  const fundingAddress = process.env.XRPL_ACCOUNT || ''
-  const auditLink = '/assets/20241112_Audit_Offer.pdf'
-  const prLink = 'https://github.com/LedgerHQ/app-xrp/pull/52'
-  const goalUSD = 4850
-
-  const newFeatures = [
-    'NFToken - Mint, Create Offers, Cancel Offers and Accept Offers',
-    'Clawback - Clawback IOU Tokens',
-    'AMM - Create Delete, Deposit, Withdraw and Vote on AMM Pools',
-  ]
+  const [campaign, setCampaign] = useState<AppCampaign>(undefined)
 
   // Mock data for top contributors
   const [topContributors, setTopContributors] = useState<Contributor[]>([])
@@ -73,7 +62,7 @@ export default function Index() {
         {
           TransactionType: 'Payment',
           Amount: xrpToDrops(amount),
-          Destination: fundingAddress,
+          Destination: campaign.account,
         },
       )
       setLink(response.data.next.always)
@@ -87,47 +76,57 @@ export default function Index() {
   }
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(fundingAddress)
+    navigator.clipboard.writeText(campaign.account)
     alert('Funding address copied to clipboard!')
   }
 
-  const updateBalance = async () => {
-    const goalXrp = Number(goalUSD / xrpPrice).toFixed(0)
-    const balance = await fetchBalance(xrpl, fundingAddress)
-    const raised = balance / Number(goalXrp)
-    setPercentRaised(raised * 100)
-    setRaisedAmount(balance)
-    setGoalAmount(Number(goalXrp))
-    const c = await fetchContributors(xrpl, fundingAddress)
+  const updateBalance = async (campaign: AppCampaign) => {
+    const balance = await fetchBalance(xrpl, campaign.account, campaign.endLedger)
+    campaign.raised = balance
+    campaign.raisedPercent = (balance / campaign.goal) * 100
+    setCampaign(campaign)
+    const c = await fetchContributors(xrpl, campaign.account, campaign.startLedger, campaign.endLedger)
     setTopContributors(c)
   }
 
   useEffect(() => {
-    const listenBalance = async () => {
+    const getCampaign = async () => {
+      const campaign = campaigns.find((c) => c.id === id)
+      setCampaign(campaign)
+    }
+    getCampaign()
+  }, [])
+
+  useEffect(() => {
+    const listenBalance = async (campaign: AppCampaign) => {
       xrpl.on('transaction', async (message: any) => {
         if (!message || !message.tx_json) return
         if (
           message.tx_json.TransactionType === 'Payment' &&
-          message.tx_json.Destination === fundingAddress
+          message.tx_json.Destination === campaign.account
         ) {
-          await updateBalance()
+          await updateBalance(campaign)
           return
         }
       })
       await xrpl.request({
         command: 'subscribe',
-        accounts: [fundingAddress],
+        accounts: [campaign.account],
       })
-      await updateBalance()
+      await updateBalance(campaign)
     }
-    listenBalance()
+    campaign ? listenBalance(campaign) : null
     return () => {
-      xrpl.request({
-        command: 'unsubscribe',
-        accounts: [fundingAddress],
-      })
+      if (campaign?.account) {
+        xrpl.request({
+          command: 'unsubscribe',
+          accounts: [campaign?.account],
+        })
+      }
     }
-  }, [])
+  }, [campaign])
+
+  if (!campaign || campaign?.raised === 0) return null
 
   return (
     <div className="min-h-screen text-gray-900 relative">
@@ -141,10 +140,10 @@ export default function Index() {
       <div className="container mx-auto px-4 py-16 relative z-10">
         <div className="text-center mb-12 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-primary">
-            Ledger Device Audit # 1
+            {campaign.title}
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Updating the Ledger Device for the XRP Ledger.
+            {campaign.description}
           </p>
         </div>
 
@@ -160,11 +159,11 @@ export default function Index() {
                   <div className="w-full bg-gray-200 rounded h-2 relative">
                     <div
                       className={`h-full rounded ${
-                        percentageRaised > 100 ? 'bg-green-500' : 'bg-primary'
+                        campaign.raisedPercent > 100 ? 'bg-green-500' : 'bg-primary'
                       }`}
                       style={{
                         width: `${
-                          percentageRaised > 100 ? 100 : percentageRaised
+                          campaign.raisedPercent > 100 ? 100 : campaign.raisedPercent
                         }%`,
                       }}
                     ></div>
@@ -173,22 +172,29 @@ export default function Index() {
                 <p className="text-2xl font-semibold mb-2">
                   <span
                     className={`${
-                      percentageRaised > 100 ? 'text-green-500' : 'text-primary'
+                      campaign.raisedPercent > 100 ? 'text-green-500' : 'text-primary'
                     }`}
                   >
-                    {raisedAmount.toLocaleString()} XRP
+                    {campaign.raised.toLocaleString()} XRP
                   </span>
-                  <span className="text-muted-foreground"> / </span>
-                  <span>{goalAmount.toLocaleString()} XRP</span>
+                  {campaign.hardGoal && (
+                    <>
+                      <span className="text-muted-foreground"> / </span>
+                      <span>{campaign.goal.toLocaleString()} XRP</span>
+                    </>
+                  )}
                 </p>
-                <p className="text-muted-foreground">
-                  {(percentageRaised > 100 ? 100 : percentageRaised).toFixed(1)}
-                  % Complete
-                </p>
-                <p className="text-sm text-green-800 mt-1">
-                  Extra contributions will support continued development and
-                  future audits.
-                </p>
+                {campaign.hardGoal && (
+                  <>
+                    <p className="text-muted-foreground">
+                      {(campaign.raisedPercent > 100 ? 100 : campaign.raisedPercent).toFixed(1)}
+                      % Complete
+                    </p>
+                    <p className="text-sm text-green-800 mt-1">
+                      {campaign.overfunding}
+                    </p>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -198,11 +204,10 @@ export default function Index() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl mb-2">
                 <Zap className="w-5 h-5 text-primary" />
-                Contribute Now
+                {campaign.contribute.title}
               </CardTitle>
               <CardDescription>
-                Support the development of advanced features for the Ledger
-                Device.
+                {campaign.contribute.description}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -214,7 +219,7 @@ export default function Index() {
                   Or send XRP directly to this address:
                 </p>
                 <div className="flex items-center space-x-2">
-                  <Input value={fundingAddress} readOnly className="text-sm" />
+                  <Input value={campaign.account} readOnly className="text-sm" />
                   <Button
                     size="icon"
                     variant="outline"
@@ -230,23 +235,23 @@ export default function Index() {
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3">
                   <img
-                    src="/assets/profile.jpeg?height=40&width=40"
+                    src={campaign.contribute.owner.avatar}
                     alt="Developer Avatar"
                     width={40}
                     height={40}
                     className="rounded-full"
                   />
                   <div>
-                    <h3 className="text-sm font-semibold">Denis Angell</h3>
+                    <h3 className="text-sm font-semibold">{campaign.contribute.owner.name}</h3>
                     <p className="text-xs text-muted-foreground">
-                      Lead Developer
+                      {campaign.contribute.owner.title}
                     </p>
                   </div>
                 </div>
                 <Button asChild variant="ghost" size="sm">
                   <Link
                     target="_blank"
-                    href="https://twitter.com/@angell_denis"
+                    href={campaign.contribute.owner.twitter}
                     rel="noopener noreferrer"
                   >
                     <Twitter className="w-4 h-4 mr-2" />
@@ -261,15 +266,15 @@ export default function Index() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl mb-2">
                 <Wallet className="w-5 h-5 text-primary" />
-                New Features
+                {campaign.features.title}
               </CardTitle>
               <CardDescription>
-                Enhancements coming to the XRP Ledger Device:
+              {campaign.features.description}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                {newFeatures.map((feature, index) => (
+                {campaign.features.items.map((feature, index) => (
                   <li key={index} className="flex items-start gap-2 text-sm">
                     <ChevronRight className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
                     <span>{feature}</span>
@@ -319,40 +324,37 @@ export default function Index() {
         </div>
 
         {/* Disclaimer Section */}
-        <Card className="bg-yellow-50 border border-yellow-200 shadow-md mb-12">
-          <CardContent className="p-6">
-            <h2 className="text-xl font-semibold text-yellow-800 mb-2">
-              Disclaimer
-            </h2>
-            <p className="text-yellow-700">
-              The goal amount of{' '}
-              <span className="font-bold">{goalUSD.toLocaleString()} USD</span>{' '}
-              is precisely the cost required for the audit. Due to the
-              confidential nature of the audit, I am unable to share the
-              detailed proposal publicly. Any funds raised beyond the set goal
-              will be allocated towards continued development and funding
-              subsequent audits, which will encompass the latest features added
-              to the Ledger Device.
-            </p>
-          </CardContent>
-        </Card>
+        {campaign.disclaimer && (
+          <Card className="bg-yellow-50 border border-yellow-200 shadow-md mb-12">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-semibold text-yellow-800 mb-2">
+                Disclaimer
+              </h2>
+              <p className="text-yellow-700">
+                {campaign.disclaimer}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 animate-fade-in">
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="w-full sm:w-auto"
-          >
-            <Link
-              target="_blank"
-              href={prLink}
-              className="flex items-center justify-center gap-2"
+          {campaign.links.map((link, index) => (
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto"
             >
-              View GitHub PR
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </Button>
+              <Link
+                target="_blank"
+                href={link.href}
+                className="flex items-center justify-center gap-2"
+              >
+                {link.title}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+          ))}
         </div>
       </div>
 

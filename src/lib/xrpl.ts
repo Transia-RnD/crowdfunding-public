@@ -4,10 +4,12 @@ import { Client, dropsToXrp, rippleTimeToUnixTime } from 'xrpl'
 export const fetchBalance = async (
   client: Client,
   address: string,
+  ledger_index?: number,
 ): Promise<number> => {
   const accountInfo = await client.request({
     command: 'account_info',
     account: address,
+    ledger_index: ledger_index || 'current',
   })
   const balance = dropsToXrp(accountInfo.result.account_data.Balance || '0')
   // const ownerCount = accountInfo.result.account_data.OwnerCount || 0;
@@ -80,17 +82,26 @@ export const getAccountMetaAsync = async (
 export const fetchContributors = async (
   client: Client,
   address: string,
+  startLedger: number,
+  endLedger: number,
 ): Promise<any[]> => {
+  console.log(endLedger)
+
   const accountTxns = await client.request({
     command: 'account_tx',
     account: address,
+    ledger_index_min: startLedger,
+    ledger_index_max: endLedger ? endLedger : -1,
     limit: 100,
   })
 
   const txns =
     accountTxns.result.transactions.map((tx: any) => tx.tx_json) || []
   const _txns = txns.filter(
-    (tx: any) => tx.TransactionType === 'Payment' && Number(tx.DeliverMax) > 1,
+    (tx: any) =>
+      tx.Destination === address &&
+      tx.TransactionType === 'Payment' &&
+      Number(tx.DeliverMax) > 1,
   )
   const promises = _txns
     .sort((a: any, b: any) => b.date - a.date)
