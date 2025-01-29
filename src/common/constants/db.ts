@@ -119,6 +119,10 @@ export const campaigns: AppCampaign[] = [
     goal: 2000,
     links: [
       {
+        title: 'View XLS',
+        href: 'https://github.com/XRPLF/XRPL-Standards/blob/master/XLS-0056d-batch/README.md',
+      },
+      {
         title: 'View GitHub PR',
         href: 'https://github.com/XRPLF/rippled/pull/5060',
       },
