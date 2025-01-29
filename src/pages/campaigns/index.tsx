@@ -51,7 +51,7 @@ export default function Index() {
                   <Progress className={campaign.raisedPercent > 100 ? '[&>*]:bg-green-500' : ''} value={campaign.raisedPercent > 100 ? 100 : campaign.raisedPercent} />
                   <div className="flex justify-between text-sm">
                     <span>{campaign.raised.toLocaleString()} XRP raised</span>
-                    <span>{campaign.goal.toLocaleString()} XRP goal</span>
+                    {campaign.hardGoal && <span>{campaign.goal.toLocaleString()} XRP goal</span>}
                   </div>
                 </div>
               </CardContent>
