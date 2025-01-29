@@ -137,6 +137,7 @@ export const campaigns: AppCampaign[] = [
     ],
     disclaimer:
       'To participate, you must register your address in advance. Any attempt to artificially inflate transaction counts through automated means may result in disqualification. We reserve the right to determine what constitutes fair participation and to change the rules at any time. Of the total contributions, 20% is reserved for the amendment developer, and 30% is allocated for bugs found during testing. If no bugs are discovered, this 30% will be distributed among the testers. By contributing, you agree to these terms and conditions.',
+    startLedger: 92428457,
     endLedger: null,
   } as AppCampaign,
 ]
