@@ -6,14 +6,19 @@ export const fetchBalance = async (
   address: string,
   ledger_index?: number,
 ): Promise<number> => {
-  const accountInfo = await client.request({
-    command: 'account_info',
-    account: address,
-    ledger_index: ledger_index || 'current',
-  })
-  const balance = dropsToXrp(accountInfo.result.account_data.Balance || '0')
-  // const ownerCount = accountInfo.result.account_data.OwnerCount || 0;
-  return balance - 10
+  try {
+    const accountInfo = await client.request({
+      command: 'account_info',
+      account: address,
+      ledger_index: ledger_index || 'current',
+    })
+    const balance = dropsToXrp(accountInfo.result.account_data.Balance || '0')
+    // const ownerCount = accountInfo.result.account_data.OwnerCount || 0;
+    return balance - 10
+  } catch (error: any) {
+    console.error('Failed to get balance.', error)
+    return 0
+  }
 }
 
 const memconfig = { accountMetaExpirationInSeconds: 60 }
@@ -85,41 +90,44 @@ export const fetchContributors = async (
   startLedger: number,
   endLedger: number,
 ): Promise<any[]> => {
-  console.log(endLedger)
-
-  const accountTxns = await client.request({
-    command: 'account_tx',
-    account: address,
-    ledger_index_min: startLedger,
-    ledger_index_max: endLedger ? endLedger : -1,
-    limit: 100,
-  })
-
-  const txns =
-    accountTxns.result.transactions.map((tx: any) => tx.tx_json) || []
-  const _txns = txns.filter(
-    (tx: any) =>
-      tx.Destination === address &&
-      tx.TransactionType === 'Payment' &&
-      Number(tx.DeliverMax) > 1,
-  )
-  const promises = _txns
-    .sort((a: any, b: any) => b.date - a.date)
-    .slice(0, 3)
-    .map(async (tx: any) => {
-      const accountProfile = await getAccountMetaAsync(tx.Account)
-      return {
-        account: accountProfile.account,
-        avatar: accountProfile.avatar,
-        name:
-          accountProfile.thirdPartyProfiles.length > 0
-            ? accountProfile.thirdPartyProfiles[0].accountAlias
-            : 'Unknown',
-        amount: dropsToXrp(tx.DeliverMax),
-        timestamp: rippleTimeToUnixTime(tx.date),
-      }
+  try {
+    const accountTxns = await client.request({
+      command: 'account_tx',
+      account: address,
+      ledger_index_min: startLedger,
+      ledger_index_max: endLedger ? endLedger : -1,
+      limit: 100,
     })
-  return Promise.all(promises)
+
+    const txns =
+      accountTxns.result.transactions.map((tx: any) => tx.tx_json) || []
+    const _txns = txns.filter(
+      (tx: any) =>
+        tx.Destination === address &&
+        tx.TransactionType === 'Payment' &&
+        Number(tx.DeliverMax) > 1,
+    )
+    const promises = _txns
+      .sort((a: any, b: any) => b.date - a.date)
+      .slice(0, 3)
+      .map(async (tx: any) => {
+        const accountProfile = await getAccountMetaAsync(tx.Account)
+        return {
+          account: accountProfile.account,
+          avatar: accountProfile.avatar,
+          name:
+            accountProfile.thirdPartyProfiles.length > 0
+              ? accountProfile.thirdPartyProfiles[0].accountAlias
+              : 'Unknown',
+          amount: dropsToXrp(tx.DeliverMax),
+          timestamp: rippleTimeToUnixTime(tx.date),
+        }
+      })
+    return Promise.all(promises)
+  } catch (error: any) {
+    console.error('Failed to get contributors.', error)
+    return []
+  }
 }
 
 export const fetchUSDPrice = async (client: Client): Promise<number> => {

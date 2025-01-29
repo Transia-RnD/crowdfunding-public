@@ -126,7 +126,7 @@ export default function Index() {
     }
   }, [campaign])
 
-  if (!campaign || campaign?.raised === 0) return null
+  if (!campaign) return null
 
   return (
     <div className="min-h-screen text-gray-900 relative">
