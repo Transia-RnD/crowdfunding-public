@@ -89,13 +89,14 @@ export const campaigns: AppCampaign[] = [
     finished: false,
     hardGoal: false,
     account: 'rGtjtHhe21WvPWtANbndjKbhe7ftAGHdVi',
-    title: 'Batch Amendment Testing',
-    description: 'Testing the Batch amendment on the devnet.',
+    title: 'Batch & EscrowToken Amendment Testing',
+    description: 'Testing the Batch & EscrowToken amendment on the devnet.',
     overfunding:
       'Extra contributions will support continued development of future amendments.',
     contribute: {
       title: 'Contribute Now',
-      description: 'Support the penetration testing of the Batch Amendment.',
+      description:
+        'Support the penetration testing of the Batch & EscrowToken Amendment.',
       owner: {
         avatar: '/assets/profile.jpeg?height=40&width=40',
         name: 'Denis Angell',
@@ -107,11 +108,8 @@ export const campaigns: AppCampaign[] = [
       title: 'Testing Details',
       description: 'How it will work:',
       items: [
-        'Batch will be merged into the XRPL devent',
-        'You must register your testing address first.',
-        'Submit Batch transactions using the xrpl.js or xrpl-py.',
-        'Payouts are based on the total number of batch transactions submitted by your registered address.',
-        'Report any bugs your find for an additional payout.',
+        'Batch & EscrowToken will be merged into the XRPL devent',
+        'Report any bugs your find for a payout.',
       ],
     },
     raisedPercent: 0,
@@ -119,16 +117,12 @@ export const campaigns: AppCampaign[] = [
     goal: 2000,
     links: [
       {
-        title: 'View XLS',
-        href: 'https://github.com/XRPLF/XRPL-Standards/blob/master/XLS-0056d-batch/README.md',
-      },
-      {
-        title: 'View GitHub PR',
+        title: 'Batch PR',
         href: 'https://github.com/XRPLF/rippled/pull/5060',
       },
       {
-        title: 'Register Your Address',
-        href: 'https://forms.gle/VQzGGWbEZGFEVtep9',
+        title: 'EscrowToken PR',
+        href: 'https://github.com/XRPLF/rippled/pull/5185',
       },
       {
         title: 'Report A Bug',
@@ -136,7 +130,7 @@ export const campaigns: AppCampaign[] = [
       },
     ],
     disclaimer:
-      'To participate, you must register your address in advance. Any attempt to artificially inflate transaction counts through automated means may result in disqualification. We reserve the right to determine what constitutes fair participation and to change the rules at any time. Of the total contributions, 20% is reserved for the amendment developer, and 30% is allocated for bugs found during testing. If no bugs are discovered, this 30% will be distributed among the testers. By contributing, you agree to these terms and conditions.',
+      'Only valid, previously unreported bugs are eligible for payouts. Public disclosure of bugs before official acknowledgment and resolution is strictly prohibited and will result in disqualification from any rewards. We reserve the right to determine what constitutes a valid bug and to change the rules at any time. Of the total contributions, 20% is reserved for the amendment developer, and 80% is allocated exclusively for payouts to testers who report valid bugs. By contributing or participating, you agree to these terms and conditions.',
     startLedger: 92428457,
     endLedger: null,
   } as AppCampaign,
