@@ -69,7 +69,7 @@ export const getAccountMetaAsync = async (
       `AM-${account}`,
       async () => {
         const response = await axios.get(
-          `https://xumm.app/api/v1/platform/account-meta/${account}`,
+          `https://xaman.app/api/v1/platform/account-meta/${account}`,
         )
         return response.data
       },
